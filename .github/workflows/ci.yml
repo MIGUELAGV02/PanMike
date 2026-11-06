@@ -1,38 +1,46 @@
-name: Laravel CI
+name: Laravel CI & Release Pipeline
 
 on:
   push:
     branches: [ "main" ]
+    tags: [ "v*" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
-  laravel-tests:
-    name: Run Tests (PHP 8.2)
+  # ============================================================================
+  # ETAPA 1: Construcción, Pruebas y Empaquetado del Artefacto de Liberación
+  # ============================================================================
+  build-and-release:
+    name: Build, Test & Package Release
     runs-on: ubuntu-latest
 
     env:
       DB_CONNECTION: sqlite
       DB_DATABASE: ":memory:"
+      APP_ENV: testing
       CACHE_STORE: array
       SESSION_DRIVER: array
       QUEUE_CONNECTION: sync
 
     steps:
-      - name: Checkout code
+      # 1. Obtener el código desde GitHub
+      - name: Obtener el codigo desde GitHub
         uses: actions/checkout@v4
 
-      - name: Setup PHP
+      # 2. Configurar entorno PHP y SQLite
+      - name: Configurar entorno PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: mbstring, pdo_sqlite, sqlite3, bcmath, fileinfo
+          extensions: mbstring, pdo_sqlite, sqlite3, bcmath, fileinfo, curl, zip
           coverage: none
 
-      - name: Validate composer.json and composer.lock
+      - name: Validar composer.json y lock
         run: composer validate --strict
 
-      - name: Cache Composer dependencies
+      - name: Cache de dependencias Composer
         uses: actions/cache@v4
         with:
           path: vendor
@@ -40,22 +48,93 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-composer-
 
-      - name: Install dependencies
+      # 2. Instalar las dependencias mediante Composer
+      - name: Instalar las dependencias mediante Composer
         run: composer install --prefer-dist --no-interaction --no-progress
 
-      - name: Prepare Laravel Application
+      - name: Preparar entorno de pruebas
         run: |
           cp .env.example .env
           php artisan key:generate
           touch database/database.sqlite
-
-      - name: Clear Cache and Configuration
-        run: |
           php artisan config:clear
           php artisan cache:clear
 
-      - name: Run Tests
+      # 3. Ejecutar las pruebas automatizadas
+      - name: Ejecutar las pruebas automatizadas
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ":memory:"
         run: php artisan test
+
+      # 4. Preparar los archivos necesarios para la liberación
+      - name: Preparar los archivos necesarios para la liberacion
+        run: |
+          # Eliminar .env y base de datos sqlite generada durante las pruebas (calidad y seguridad)
+          rm -f .env database/database.sqlite
+          # Instalar dependencias limpias de producción/preproducción sin paquetes dev
+          composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-progress
+
+      # 5. Generar un archivo comprimido o artefacto con la versión del proyecto
+      - name: Generar artefacto de liberacion
+        run: tar --exclude='.git' --exclude='.env' --exclude='node_modules' --exclude='storage/logs/*' -czf laravel-release.tar.gz .
+
+      # 6. Publicar el artefacto como resultado de la ejecución
+      - name: Publicar artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: laravel-release
+          path: laravel-release.tar.gz
+          retention-days: 7
+
+      # 7. Preparar su entrega a un ambiente de pruebas o preproducción
+      - name: Preparar su entrega a un ambiente de pruebas o preproduccion
+        run: |
+          echo "============================================================"
+          echo "📦 Artefacto laravel-release.tar.gz generado exitosamente"
+          echo "============================================================"
+          ls -lh laravel-release.tar.gz
+          echo "El paquete está listo para ser desplegado mediante setup-preprod.sh"
+
+  # ============================================================================
+  # ETAPA 2: Preparación y Registro del Despliegue en Preproducción
+  # ============================================================================
+  delivery-preprod:
+    name: Entrega a Ambiente de Preproducción
+    needs: [build-and-release]
+    runs-on: ubuntu-latest
+    environment:
+      name: preproduccion
+      url: http://preprod.mikepan.local
+    steps:
+      - name: Descargar artefacto publicado
+        uses: actions/download-artifact@v4
+        with:
+          name: laravel-release
+
+      - name: Validar integridad del artefacto y preparar entrega
+        run: |
+          echo "============================================================"
+          echo "🚀 Validando paquete de liberación para Preproducción"
+          echo "============================================================"
+          ls -lh laravel-release.tar.gz
+
+          echo "Verificando ausencia de información sensible (.env):"
+          if tar -tzf laravel-release.tar.gz | grep -E "(^\./\.env$|/\.env$)"; then
+            echo "❌ ERROR: El archivo .env fue incluido en el artefacto."
+            exit 1
+          else
+            echo "✓ Validación de seguridad aprobada: No contiene .env"
+          fi
+
+          echo "Verificando ausencia de directorio .git:"
+          if tar -tzf laravel-release.tar.gz | grep -E "^\./\.git/"; then
+            echo "❌ ERROR: El directorio .git fue incluido en el artefacto."
+            exit 1
+          else
+            echo "✓ Validación de seguridad aprobada: No contiene .git"
+          fi
+
+          echo "============================================================"
+          echo "✅ Artefacto listo para distribución a servidor de pruebas."
+          echo "============================================================"

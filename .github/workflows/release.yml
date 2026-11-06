@@ -14,6 +14,9 @@ on:
         default: 'preproduccion'
 
 jobs:
+  # ============================================================================
+  # ETAPA 1: Construcción, Pruebas y Empaquetado del Artefacto
+  # ============================================================================
   build-and-release:
     name: Build, Test & Package Release
     runs-on: ubuntu-latest
@@ -27,10 +30,12 @@ jobs:
       QUEUE_CONNECTION: sync
 
     steps:
+      # 1. Obtener el código desde GitHub
       - name: Obtener el codigo (Checkout)
         uses: actions/checkout@v4
 
-      - name: Configurar PHP
+      # 2. Instalar las dependencias mediante Composer
+      - name: Configurar PHP y extensiones
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
@@ -59,22 +64,67 @@ jobs:
           php artisan config:clear
           php artisan cache:clear
 
+      # 3. Ejecutar las pruebas automatizadas
       - name: Ejecutar pruebas automatizadas
         run: php artisan test
 
+      # 4. Preparar los archivos necesarios para la liberación
       - name: Preparar dependencias limpias para liberacion
         run: |
-          # Eliminar archivo .env y base de datos de prueba para asegurar empaquetado limpio
           rm -f .env database/database.sqlite
-          # Instalar dependencias optimizadas sin paquetes de desarrollo (sin phpunit, faker, etc.)
           composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-progress
 
+      # 5. Generar un archivo comprimido o artefacto con la versión del proyecto
       - name: Generar artefacto de liberacion
         run: tar --exclude='.git' --exclude='.env' --exclude='node_modules' --exclude='storage/logs/*' -czf laravel-release.tar.gz .
 
+      # 6. Publicar el artefacto como resultado de la ejecución
       - name: Publicar artefacto
         uses: actions/upload-artifact@v4
         with:
           name: laravel-release
           path: laravel-release.tar.gz
           retention-days: 7
+
+      # 7. Preparar su entrega a un ambiente de pruebas o preproducción
+      - name: Preparar su entrega a un ambiente de pruebas o preproduccion
+        run: |
+          echo "============================================================"
+          echo "📦 Artefacto laravel-release.tar.gz generado exitosamente"
+          echo "============================================================"
+          ls -lh laravel-release.tar.gz
+
+  # ============================================================================
+  # ETAPA 2: Registro del Despliegue en Preproducción (Environment Deployment)
+  # ============================================================================
+  delivery-preprod:
+    name: Entrega a Ambiente de Preproducción
+    needs: [build-and-release]
+    runs-on: ubuntu-latest
+    environment:
+      name: preproduccion
+      url: http://preprod.mikepan.local
+    steps:
+      - name: Descargar artefacto publicado
+        uses: actions/download-artifact@v4
+        with:
+          name: laravel-release
+
+      - name: Validar integridad y certificar despliegue en preproduccion
+        run: |
+          echo "============================================================"
+          echo "🚀 Certificación de Entrega en Preproducción"
+          echo "============================================================"
+          ls -lh laravel-release.tar.gz
+
+          if tar -tzf laravel-release.tar.gz | grep -E "(^\./\.env$|/\.env$)"; then
+            echo "❌ ERROR: .env detectado."
+            exit 1
+          fi
+
+          if tar -tzf laravel-release.tar.gz | grep -E "^\./\.git/"; then
+            echo "❌ ERROR: .git detectado."
+            exit 1
+          fi
+
+          echo "✅ Certificación aprobada: Paquete listo para el ambiente de pruebas."

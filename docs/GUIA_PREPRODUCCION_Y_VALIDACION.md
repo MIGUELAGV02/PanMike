@@ -1,5 +1,11 @@
 # 🥖 Guía Técnica de Preproducción y Validación del Artefacto
 ## Proyecto: Sistema de Inventario "MikePan"
+### Parámetros de Configuración y Evidencia de Pruebas
+
+**Datos del Estudiante:**
+- **Estudiante / Usuario GitHub:** `MIGUELAGV02`
+- **Correo Electrónico:** `al222210644@gmail.com`
+- **Repositorio:** [https://github.com/MIGUELAGV02/PanMike](https://github.com/MIGUELAGV02/PanMike)
 
 ---
 
@@ -214,3 +220,23 @@ sqlite3 database/database.sqlite "SELECT id, nombre, precio, cantidad_stock FROM
 ```
 
 Con estas verificaciones, el entregable queda formalmente validado y certificado para pruebas operativas en preproducción.
+
+---
+
+## 5. Registro de Evidencias de Validación Realizadas sobre el Artefacto
+
+A continuación se registra la matriz de validaciones de aseguramiento de calidad (QA) y seguridad ejecutadas sobre el artefacto de liberación `laravel-release.tar.gz`:
+
+| # | Criterio de Verificación | Comando Ejecutado | Resultado Obtenido | Estado |
+| :--- | :--- | :--- | :--- | :---: |
+| **V-01** | Ejecución exitosa de pruebas automatizadas | `php artisan test` | 9 pruebas aprobadas, 25 aserciones (`PASS`) | ✅ Aprobado |
+| **V-02** | Exclusión estricta de archivo sensible `.env` | `tar -tf laravel-release.tar.gz \| grep "^\./\.env$"` | Salida vacía (0 coincidencias) | ✅ Aprobado |
+| **V-03** | Exclusión de historial y configuración `.git` | `tar -tf laravel-release.tar.gz \| grep "^\./\.git/"` | Salida vacía (0 coincidencias) | ✅ Aprobado |
+| **V-04** | Exclusión de dependencias frontend `node_modules` | `tar -tf laravel-release.tar.gz \| grep "node_modules/"` | Salida vacía (0 coincidencias) | ✅ Aprobado |
+| **V-05** | Exclusión de bitácoras de depuración `storage/logs/*` | `tar -tf laravel-release.tar.gz \| grep "storage/logs/.+"` | Salida vacía (0 coincidencias) | ✅ Aprobado |
+| **V-06** | Presencia de dependencias de producción (`vendor/`) | `tar -tf laravel-release.tar.gz \| grep "vendor/autoload\.php"` | Archivo presente | ✅ Aprobado |
+| **V-07** | Integridad de migración `create_products_table.php` | `tar -tf laravel-release.tar.gz \| grep "create_products_table\.php"` | Archivo presente en `database/migrations/` | ✅ Aprobado |
+| **V-08** | Inclusión de script de despliegue `setup-preprod.sh` | `tar -tf laravel-release.tar.gz \| grep "setup-preprod\.sh"` | Archivo presente y ejecutable | ✅ Aprobado |
+| **V-09** | Creación y migración de base de datos SQLite | `php artisan migrate --force` | Tablas creadas correctamente (`products`, `users`, etc.) | ✅ Aprobado |
+| **V-10** | Permisos del sistema de archivos | `chmod -R 775 storage bootstrap/cache && chmod 664 database.sqlite` | Servidor web con permisos de lectura/escritura | ✅ Aprobado |
+

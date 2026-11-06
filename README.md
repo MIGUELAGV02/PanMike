@@ -1,59 +1,106 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🥖 Sistema de Inventario de Panadería - "MikePan"
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+[![Laravel CI & Release Pipeline](https://github.com/MIGUELAGV02/PanMike/actions/workflows/ci.yml/badge.svg)](https://github.com/MIGUELAGV02/PanMike/actions/workflows/ci.yml)
+[![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-777bb4?logo=php&logoColor=white)](https://php.net)
+[![Framework](https://img.shields.io/badge/Laravel-11%20%2F%2012-FF2D20?logo=laravel&logoColor=white)](https://laravel.com)
+[![Database](https://img.shields.io/badge/Database-SQLite%203-003B57?logo=sqlite&logoColor=white)](https://sqlite.org)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 📌 Datos de Identificación del Estudiante
+- **Nombre / Usuario de GitHub:** `MIGUELAGV02`
+- **Correo Institucional:** `al222210644@gmail.com`
+- **Repositorio Oficial:** [https://github.com/MIGUELAGV02/PanMike](https://github.com/MIGUELAGV02/PanMike)
+- **Asignatura:** DevOps y Entrega Continua - Actividad de Liberación de Versiones (Unidad II)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 📖 Descripción del Proyecto
+**MikePan** es una solución integral desarrollada en Laravel 11/PHP diseñada para la administración de inventario y registro de existencias en una panadería artesanal. Utiliza **SQLite** como motor de base de datos embebido en el servidor local (sin requerir gestores externos ni consumo excesivo de memoria), lo que lo convierte en un sistema altamente portable, ligero y rápido.
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## 🚀 Proceso de Integración y Entrega Continua (CI/CD)
+El proyecto cuenta con un pipeline automatizado en **GitHub Actions** (`.github/workflows/ci.yml` y `.github/workflows/release.yml`) que no sólo valida el código mediante pruebas automatizadas, sino que además ejecuta las etapas de **liberación continua**, produciendo un **artefacto empaquetado (`laravel-release.tar.gz`)** listo para preproducción.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```mermaid
+flowchart LR
+    A["💻 Commit / Git Tag"] --> B["⚙️ GitHub Actions CI"]
+    B --> C["🧪 composer test (PHPUnit)"]
+    C --> D["📦 Generar Artefacto (tar)"]
+    D --> E["☁️ Publicar Artefacto (actions/upload-artifact@v4)"]
+    E --> F["🚀 Despliegue en Preproducción (setup-preprod.sh)"]
+```
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 📂 Entregables de la Actividad
 
-### Premium Partners
+| Sección de la Actividad | Documento / Recurso | Descripción |
+| :--- | :--- | :--- |
+| **Parte 1: Diseño del Proceso de Liberación** | [`docs/DISENO_PROCESO_LIBERACION.md`](docs/DISENO_PROCESO_LIBERACION.md) | Pasos de preparación, dependencias, SemVer (`v1.0.0`), Quality Gates y diagrama Mermaid detallado. |
+| **Parte 2: GitHub Actions (Workflow)** | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) & [`.github/workflows/release.yml`](.github/workflows/release.yml) | Pipeline ampliado con pasos obligatorios: `Generar artefacto de liberacion` y `Publicar artefacto`. |
+| **Parte 3: Ambiente de Preproducción** | [`setup-preprod.sh`](setup-preprod.sh) & [`.env.preprod.example`](.env.preprod.example) | Script bash automatizado y parámetros de configuración para servidores Ubuntu/Debian (Nginx/Apache). |
+| **Parte 4: Validación del Artefacto** | [`docs/GUIA_PREPRODUCCION_Y_VALIDACION.md`](docs/GUIA_PREPRODUCCION_Y_VALIDACION.md) | Descarga desde GitHub Actions, auditoría de exclusión de `.env` / `.git`, despliegue y smoke tests. |
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+## 🛠️ Requisitos de Ejecución
+- **PHP** >= 8.2 (Extensiones: `pdo_sqlite`, `sqlite3`, `mbstring`, `curl`, `xml`, `bcmath`, `fileinfo`, `zip`).
+- **Composer** 2.x
+- **SQLite 3**
+- **Nginx** o **Apache**
+- **tar** y **gzip**
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## 💻 Inicio Rápido en Modo Local
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+1. Clonar el repositorio:
+   ```bash
+   git clone https://github.com/MIGUELAGV02/PanMike.git
+   cd PanMike
+   ```
 
-## Security Vulnerabilities
+2. Instalar dependencias:
+   ```bash
+   composer install
+   ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+3. Configurar entorno y base de datos SQLite:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   touch database/database.sqlite
+   php artisan migrate
+   ```
 
-## License
+4. Ejecutar suite de pruebas automatizadas:
+   ```bash
+   php artisan test
+   ```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+5. Iniciar servidor local:
+   ```bash
+   php artisan serve
+   ```
+   Acceder a la interfaz de inventario en: [http://localhost:8000/inventory](http://localhost:8000/inventory)
+
+---
+
+## 📦 Instrucciones para Despliegue en Preproducción
+
+1. Descarga el archivo `laravel-release.tar.gz` desde los artefactos de la ejecución en GitHub Actions.
+2. Descomprímelo en el servidor de preproducción:
+   ```bash
+   sudo mkdir -p /var/www/mikepan
+   cd /var/www/mikepan
+   tar -xzf laravel-release.tar.gz
+   ```
+3. Ejecuta el script automatizado:
+   ```bash
+   chmod +x setup-preprod.sh
+   sudo ./setup-preprod.sh www-data
+   ```
+4. El script configurará automáticamente permisos (`775`/`664`), variables de entorno, migraciones en SQLite y cachés optimizadas.

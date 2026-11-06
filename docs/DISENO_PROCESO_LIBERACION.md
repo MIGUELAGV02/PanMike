@@ -1,5 +1,11 @@
 # 🥖 Documento de Diseño del Proceso de Liberación CI/CD
 ## Proyecto: Sistema de Inventario "MikePan" (Laravel 11 & SQLite)
+### Actividad: Proceso de Entrega Continua y Liberación de Versiones (Unidad II)
+
+**Datos del Estudiante:**
+- **Estudiante / Usuario GitHub:** `MIGUELAGV02`
+- **Correo Electrónico:** `al222210644@gmail.com`
+- **Repositorio:** [https://github.com/MIGUELAGV02/PanMike](https://github.com/MIGUELAGV02/PanMike)
 
 ---
 
