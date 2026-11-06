@@ -1,0 +1,80 @@
+name: Release Pipeline - MikePan
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Ambiente de destino'
+        required: false
+        default: 'preproduccion'
+
+jobs:
+  build-and-release:
+    name: Build, Test & Package Release
+    runs-on: ubuntu-latest
+
+    env:
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ":memory:"
+      APP_ENV: testing
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+
+    steps:
+      - name: Obtener el codigo (Checkout)
+        uses: actions/checkout@v4
+
+      - name: Configurar PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_sqlite, sqlite3, bcmath, fileinfo, curl, zip
+          coverage: none
+
+      - name: Validar composer.json y lock
+        run: composer validate --strict
+
+      - name: Cache de dependencias Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Instalar dependencias para pruebas
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Preparar entorno de pruebas
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          touch database/database.sqlite
+          php artisan config:clear
+          php artisan cache:clear
+
+      - name: Ejecutar pruebas automatizadas
+        run: php artisan test
+
+      - name: Preparar dependencias limpias para liberacion
+        run: |
+          # Eliminar archivo .env y base de datos de prueba para asegurar empaquetado limpio
+          rm -f .env database/database.sqlite
+          # Instalar dependencias optimizadas sin paquetes de desarrollo (sin phpunit, faker, etc.)
+          composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-progress
+
+      - name: Generar artefacto de liberacion
+        run: tar --exclude='.git' --exclude='.env' --exclude='node_modules' --exclude='storage/logs/*' -czf laravel-release.tar.gz .
+
+      - name: Publicar artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: laravel-release
+          path: laravel-release.tar.gz
+          retention-days: 7
