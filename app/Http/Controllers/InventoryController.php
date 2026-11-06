@@ -47,6 +47,6 @@ class InventoryController extends Controller
         }
 
         return redirect()->route('inventory.index')
-            ->with('status', '¡Producto "' . $product->nombre . '" registrado exitosamente en el inventario de MikePan!');
+            ->with('status', '¡Producto "'.$product->nombre.'" registrado exitosamente en el inventario de MikePan!');
     }
 }

@@ -77,7 +77,9 @@ jobs:
 
       # 5. Generar un archivo comprimido o artefacto con la versión del proyecto
       - name: Generar artefacto de liberacion
-        run: tar --exclude='.git' --exclude='.env' --exclude='node_modules' --exclude='storage/logs/*' -czf laravel-release.tar.gz .
+        run: |
+          tar --exclude='.git' --exclude='.env' --exclude='node_modules' --exclude='storage/logs/*' -czf laravel-release.tar.gz . || \
+          (tar --exclude='.git' --exclude='.env' --exclude='node_modules' --exclude='storage/logs/*' -czf /tmp/laravel-release.tar.gz . && mv /tmp/laravel-release.tar.gz laravel-release.tar.gz)
 
       # 6. Publicar el artefacto como resultado de la ejecución
       - name: Publicar artefacto
@@ -120,7 +122,7 @@ jobs:
           ls -lh laravel-release.tar.gz
 
           echo "Verificando ausencia de información sensible (.env):"
-          if tar -tzf laravel-release.tar.gz | grep -E "(^\./\.env$|/\.env$)"; then
+          if tar -tzf laravel-release.tar.gz | grep -qE "(^\./\.env$|/\.env$)"; then
             echo "❌ ERROR: El archivo .env fue incluido en el artefacto."
             exit 1
           else
@@ -128,7 +130,7 @@ jobs:
           fi
 
           echo "Verificando ausencia de directorio .git:"
-          if tar -tzf laravel-release.tar.gz | grep -E "^\./\.git/"; then
+          if tar -tzf laravel-release.tar.gz | grep -qE "^\./\.git/"; then
             echo "❌ ERROR: El directorio .git fue incluido en el artefacto."
             exit 1
           else
